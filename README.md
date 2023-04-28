@@ -1,4 +1,4 @@
-## Le T2 Template
+## A $PEPE transaction viewer
 
 ```bash
 yarn dev
