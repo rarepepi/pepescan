@@ -77,8 +77,8 @@ export default function Home() {
       <main className="text-zinc-50 flex flex-col items-center">
         <h1 className="text-3xl font-bold mt-4">$PEPE</h1>
         {pepeTransfers.length > 0 && (
-          <div className="max-w-2xl flex justify-center">
-            <table className="table-auto">
+          <div className="flex justify-center overflow-x-auto bg-pepeDark">
+            <table className="table-fixed border">
               <thead>
                 <tr>
                   <th>Transaction Hash</th>
@@ -90,9 +90,15 @@ export default function Home() {
               <tbody>
                 {pepeTransfers.map((transfer) => (
                   <tr key={transfer.transactionHash}>
-                    <td>{transfer.transactionHash.slice(0, 16)}</td>
-                    <td>{transfer.sender.slice(0, 16)}</td>
-                    <td>{transfer.recipient.slice(0, 16)}</td>
+                    <td>{transfer.transactionHash.slice(0, 12)}...</td>
+                    <td>
+                      {transfer.sender.slice(0, 8)}...
+                      {transfer.sender.slice(36, 42)}
+                    </td>
+                    <td>
+                      {transfer.recipient.slice(0, 8)}...
+                      {transfer.recipient.slice(36, 42)}
+                    </td>
                     <td>{transfer.amount}</td>
                   </tr>
                 ))}
