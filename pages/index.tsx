@@ -25,10 +25,6 @@ type Transfer = {
 
 export default function Home() {
   const [pepeTransfers, setTransfers] = useState<Transfer[]>([]);
-  const [filteredTransfers, setFilteredTransfers] = useState([]);
-  const [senderFilter, setSenderFilter] = useState("");
-  const [recipientFilter, setRecipientFilter] = useState("");
-  const [sortBy, setSortBy] = useState("timestamp");
 
   async function getLast100Transfers() {
     const filter = pepeContract.filters.Transfer();
@@ -64,6 +60,33 @@ export default function Home() {
       setTransfers(transfers);
     };
     getTransfers();
+
+    const onNewTransfer = async (
+      from: string,
+      to: string,
+      value: number,
+      event: any
+    ) => {
+      const block = await provider.getBlock(event.blockNumber);
+      if (!event.transactionHash) return;
+      const newLog = {
+        amount: (Number(value) / 10 ** 18).toLocaleString(),
+        sender: from,
+        recipient: to,
+        transactionHash: event.transactionHash,
+        blockNumber: event.blockNumber,
+        timestamp: block?.timestamp as number,
+      };
+      setTransfers((prevTransfers) => [newLog, ...prevTransfers]);
+    };
+
+    // Attach the event listener
+    pepeContract.on("Transfer", onNewTransfer);
+
+    // Clean up the event listener on component unmount
+    return () => {
+      pepeContract.off("Transfer", onNewTransfer);
+    };
   }, []);
 
   return (
@@ -75,31 +98,35 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="text-zinc-50 flex flex-col items-center">
-        <h1 className="text-3xl font-bold mt-4">$PEPE</h1>
+        <h1 className="text-4xl font-bold my-4">$PEPE Transfers</h1>
         {pepeTransfers.length > 0 && (
-          <div className="flex justify-center overflow-x-auto bg-pepeDark">
-            <table className="table-fixed border">
+          <div className="relative overflow-x-auto border rounded-2xl">
+            <table className="w-full text-sm text-left text-zinc-100">
               <thead>
-                <tr>
-                  <th>Transaction Hash</th>
-                  <th>From</th>
-                  <th>To</th>
-                  <th>Quantity</th>
+                <tr className="text-lg">
+                  <th className="px-6 py-3">Hash</th>
+                  <th className="px-6 py-3">From</th>
+                  <th className="px-6 py-3">To</th>
+                  <th className="px-6 py-3">Quantity</th>
                 </tr>
               </thead>
               <tbody>
                 {pepeTransfers.map((transfer) => (
                   <tr key={transfer.transactionHash}>
-                    <td>{transfer.transactionHash.slice(0, 12)}...</td>
-                    <td>
+                    <td className="px-6 py-4 font-medium  whitespace-nowrap ">
+                      {transfer.transactionHash.slice(0, 12)}...
+                    </td>
+                    <td className="px-6 py-4 font-medium  whitespace-nowrap ">
                       {transfer.sender.slice(0, 8)}...
                       {transfer.sender.slice(36, 42)}
                     </td>
-                    <td>
+                    <td className="px-6 py-4 font-medium  whitespace-nowrap ">
                       {transfer.recipient.slice(0, 8)}...
                       {transfer.recipient.slice(36, 42)}
                     </td>
-                    <td>{transfer.amount}</td>
+                    <td className="px-6 py-4 font-medium  whitespace-nowrap ">
+                      {transfer.amount}
+                    </td>
                   </tr>
                 ))}
               </tbody>
