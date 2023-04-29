@@ -114,7 +114,13 @@ export default function Home() {
                 {pepeTransfers.map((transfer) => (
                   <tr key={transfer.transactionHash}>
                     <td className="px-6 py-4 font-medium  whitespace-nowrap ">
-                      {transfer.transactionHash.slice(0, 12)}...
+                      <a
+                        target="_blank"
+                        rel="noreferrer"
+                        href={`https://etherscan.io/tx/${transfer.transactionHash}`}
+                      >
+                        {transfer.transactionHash.slice(0, 12)}...
+                      </a>
                     </td>
                     <td className="px-6 py-4 font-medium  whitespace-nowrap ">
                       {transfer.sender.slice(0, 8)}...
