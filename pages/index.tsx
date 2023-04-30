@@ -25,9 +25,14 @@ type Transfer = {
 
 export default function Home() {
   const [pepeTransfers, setTransfers] = useState<Transfer[]>([]);
+  const [sortedAsc, setSortedAsc] = useState<boolean>(false);
+  const [filter, setFilter] = useState({ sender: "", recipient: "" });
 
-  async function getLast100Transfers() {
-    const filter = pepeContract.filters.Transfer();
+  async function getLast100Transfers(sender: string, recipient: string) {
+    const filter = pepeContract.filters.Transfer(
+      sender || null,
+      recipient || null
+    );
     const eventLogs = await pepeContract.queryFilter(filter, -100);
 
     const parsedLogs = eventLogs.map(async (eventLog) => {
@@ -56,7 +61,10 @@ export default function Home() {
   useEffect(() => {
     const getTransfers = async () => {
       console.log("getting transfers...");
-      const transfers = await getLast100Transfers();
+      const transfers = await getLast100Transfers(
+        filter.sender,
+        filter.recipient
+      );
       setTransfers(transfers);
     };
     getTransfers();
@@ -89,6 +97,22 @@ export default function Home() {
     };
   }, []);
 
+  const sortByAmount = () => {
+    console.log("sorting by amount...");
+
+    const sortedLogs = pepeTransfers.sort((a: Transfer, b: Transfer) => {
+      const aAmount = parseFloat(a.amount.replace(/,/g, ""));
+      const bAmount = parseFloat(b.amount.replace(/,/g, ""));
+      if (sortedAsc) {
+        return aAmount - bAmount;
+      } else {
+        return bAmount - aAmount;
+      }
+    });
+    setSortedAsc(!sortedAsc);
+    setTransfers(sortedLogs);
+  };
+
   return (
     <>
       <Head>
@@ -98,6 +122,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="text-zinc-50 flex flex-col items-center">
+        <img src="/images/pepe.webp" height={200} width={200} />
         <h1 className="text-4xl font-bold my-4">$PEPE Transfers</h1>
         {pepeTransfers.length > 0 && (
           <div className="relative overflow-x-auto border rounded-2xl">
@@ -107,12 +132,17 @@ export default function Home() {
                   <th className="px-6 py-3">Hash</th>
                   <th className="px-6 py-3">From</th>
                   <th className="px-6 py-3">To</th>
-                  <th className="px-6 py-3">Quantity</th>
+                  <th
+                    className="px-6 py-3 hover:cursor-pointer"
+                    onClick={() => sortByAmount()}
+                  >
+                    Quantity
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {pepeTransfers.map((transfer) => (
-                  <tr key={transfer.transactionHash}>
+                {pepeTransfers.map((transfer, i) => (
+                  <tr key={i}>
                     <td className="px-6 py-4 font-medium  whitespace-nowrap ">
                       <a
                         target="_blank"
