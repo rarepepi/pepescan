@@ -21,12 +21,14 @@ type Transfer = {
   transactionHash: string;
   blockNumber: number;
   timestamp: number;
+  ageInSeconds: number;
 };
 
 export default function Home() {
   const [pepeTransfers, setTransfers] = useState<Transfer[]>([]);
   const [sortedAsc, setSortedAsc] = useState<boolean>(false);
   const [filter, setFilter] = useState({ sender: "", recipient: "" });
+  const currentTimestamp = Math.floor(Date.now() / 1000);
 
   async function getLast100Transfers(sender: string, recipient: string) {
     const filter = pepeContract.filters.Transfer(
@@ -40,18 +42,16 @@ export default function Home() {
         topics: eventLog.topics as string[],
         data: eventLog.data,
       });
-      const amount = Number(parsedLog?.args.value) / 10 ** 18;
-      const sender = parsedLog?.args.from;
-      const recipient = parsedLog?.args.to;
       const block = await provider.getBlock(eventLog.blockNumber);
-      const timestamp = block?.timestamp;
+
       return {
-        amount: amount.toLocaleString(),
-        sender,
-        recipient,
+        amount: (Number(parsedLog?.args.value) / 10 ** 18).toLocaleString(),
+        sender: parsedLog?.args.from,
+        recipient: parsedLog?.args.to,
         transactionHash: eventLog.transactionHash,
         blockNumber: eventLog.blockNumber,
-        timestamp: timestamp as number,
+        timestamp: block?.timestamp as number,
+        ageInSeconds: currentTimestamp - (block?.timestamp as number),
       };
     });
     const resolvedLogs = await Promise.all(parsedLogs);
@@ -65,7 +65,7 @@ export default function Home() {
         filter.sender,
         filter.recipient
       );
-      setTransfers(transfers);
+      setTransfers(transfers.reverse());
     };
     getTransfers();
 
@@ -76,6 +76,7 @@ export default function Home() {
       event: any
     ) => {
       const block = await provider.getBlock(event.blockNumber);
+
       if (!event.transactionHash) return;
       const newLog = {
         amount: (Number(value) / 10 ** 18).toLocaleString(),
@@ -84,6 +85,7 @@ export default function Home() {
         transactionHash: event.transactionHash,
         blockNumber: event.blockNumber,
         timestamp: block?.timestamp as number,
+        ageInSeconds: currentTimestamp - (block?.timestamp as number),
       };
       setTransfers((prevTransfers) => [newLog, ...prevTransfers]);
     };
@@ -113,6 +115,36 @@ export default function Home() {
     setTransfers(sortedLogs);
   };
 
+  const sortByAge = () => {
+    console.log("sorting by amount...");
+
+    const sortedLogs = pepeTransfers.sort((a: Transfer, b: Transfer) => {
+      if (sortedAsc) {
+        return a.ageInSeconds - b.ageInSeconds;
+      } else {
+        return b.ageInSeconds - a.ageInSeconds;
+      }
+    });
+    setSortedAsc(!sortedAsc);
+    setTransfers(sortedLogs);
+  };
+
+  function formatAge(seconds: number) {
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) {
+      return `${days} day${days === 1 ? "" : "s"} ago`;
+    } else if (hours > 0) {
+      return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+    } else if (minutes > 0) {
+      return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+    } else {
+      return `${seconds} second${seconds === 1 ? "" : "s"} ago`;
+    }
+  }
+
   return (
     <>
       <Head>
@@ -130,6 +162,12 @@ export default function Home() {
               <thead>
                 <tr className="text-lg">
                   <th className="px-6 py-3">Hash</th>
+                  <th
+                    className="px-6 py-3 hover:cursor-pointer"
+                    onClick={() => sortByAge()}
+                  >
+                    Age
+                  </th>
                   <th className="px-6 py-3">From</th>
                   <th className="px-6 py-3">To</th>
                   <th
@@ -141,30 +179,37 @@ export default function Home() {
                 </tr>
               </thead>
               <tbody>
-                {pepeTransfers.map((transfer, i) => (
-                  <tr key={i}>
-                    <td className="px-6 py-4 font-medium  whitespace-nowrap ">
-                      <a
-                        target="_blank"
-                        rel="noreferrer"
-                        href={`https://etherscan.io/tx/${transfer.transactionHash}`}
-                      >
-                        {transfer.transactionHash.slice(0, 12)}...
-                      </a>
-                    </td>
-                    <td className="px-6 py-4 font-medium  whitespace-nowrap ">
-                      {transfer.sender.slice(0, 8)}...
-                      {transfer.sender.slice(36, 42)}
-                    </td>
-                    <td className="px-6 py-4 font-medium  whitespace-nowrap ">
-                      {transfer.recipient.slice(0, 8)}...
-                      {transfer.recipient.slice(36, 42)}
-                    </td>
-                    <td className="px-6 py-4 font-medium  whitespace-nowrap ">
-                      {transfer.amount}
-                    </td>
-                  </tr>
-                ))}
+                {pepeTransfers.map((transfer, i) => {
+                  const age = formatAge(currentTimestamp - transfer.timestamp);
+
+                  return (
+                    <tr key={i}>
+                      <td className="px-6 py-4 font-medium  whitespace-nowrap ">
+                        <a
+                          target="_blank"
+                          rel="noreferrer"
+                          href={`https://etherscan.io/tx/${transfer.transactionHash}`}
+                        >
+                          {transfer.transactionHash.slice(0, 12)}...
+                        </a>
+                      </td>
+                      <td className="px-6 py-4 font-medium  whitespace-nowrap ">
+                        {age}
+                      </td>
+                      <td className="px-6 py-4 font-medium  whitespace-nowrap ">
+                        {transfer.sender.slice(0, 8)}...
+                        {transfer.sender.slice(36, 42)}
+                      </td>
+                      <td className="px-6 py-4 font-medium  whitespace-nowrap ">
+                        {transfer.recipient.slice(0, 8)}...
+                        {transfer.recipient.slice(36, 42)}
+                      </td>
+                      <td className="px-6 py-4 font-medium  whitespace-nowrap ">
+                        {transfer.amount}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
