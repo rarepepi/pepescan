@@ -28,7 +28,9 @@ export default function Home() {
   const [pepeTransfers, setTransfers] = useState<Transfer[]>([]);
   const [sortedAsc, setSortedAsc] = useState<boolean>(false);
   const [filter, setFilter] = useState({ sender: "", recipient: "" });
-  const currentTimestamp = Math.floor(Date.now() / 1000);
+  const [currentTimestamp, setCurrentTimestamp] = useState(
+    Math.floor(Date.now() / 1000)
+  );
 
   async function getLast100Transfers(sender: string, recipient: string) {
     const filter = pepeContract.filters.Transfer(
@@ -57,6 +59,15 @@ export default function Home() {
     const resolvedLogs = await Promise.all(parsedLogs);
     return resolvedLogs;
   }
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setCurrentTimestamp(Math.floor(Date.now() / 1000));
+    }, 1000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, []);
 
   useEffect(() => {
     const getTransfers = async () => {
