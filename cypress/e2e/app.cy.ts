@@ -11,3 +11,5 @@ describe("Pepe Transfer App", () => {
     cy.get("thead > tr > th:nth-child(4)").contains("Quantity");
   });
 });
+
+export {};
