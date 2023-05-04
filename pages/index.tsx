@@ -70,6 +70,16 @@ export default function Home() {
     };
   }, []);
 
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      getPepeInMillions();
+    }, 10000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, []);
+
   const getTransfers = async () => {
     console.log("getting transfers...");
     const transfers = await getLast100Transfers(
@@ -92,7 +102,6 @@ export default function Home() {
     event: any
   ) => {
     const block = await provider.getBlock(event.blockNumber);
-    console.log({ event });
     if (!event.transactionHash) return;
     console.log("new transfer!");
     const newLog = {
@@ -104,7 +113,9 @@ export default function Home() {
       timestamp: block?.timestamp as number,
       ageInSeconds: currentTimestamp - (block?.timestamp as number),
     } as Transfer;
-    setTransfers((prevTransfers) => [newLog, ...prevTransfers]);
+    console.log({ newLog });
+    console.log({ pepeTransfers });
+    setTransfers([...pepeTransfers, newLog]);
   };
 
   useEffect(() => {
