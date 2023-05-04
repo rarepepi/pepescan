@@ -168,8 +168,8 @@ export default function Home() {
         <img src="/images/pepe.webp" height={200} width={200} />
         <h1 className="text-4xl font-bold my-4">$PEPE Transfers</h1>
         {pepeTransfers.length > 0 && (
-          <div className="w-full relative overflow-x-auto border rounded-2xl">
-            <table className="w-full text-sm text-left text-zinc-100">
+          <div className="max-w-full relative overflow-x-auto border rounded-2xl">
+            <table className="max-w-full text-sm text-left text-zinc-100">
               <thead>
                 <tr className="text-lg">
                   <th className="px-6 py-3">Hash</th>
