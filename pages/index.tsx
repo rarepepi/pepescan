@@ -28,6 +28,7 @@ export default function Home() {
   const [pepeTransfers, setTransfers] = useState<Transfer[]>([]);
   const [sortedAsc, setSortedAsc] = useState<boolean>(false);
   const [filter, setFilter] = useState({ sender: "", recipient: "" });
+  const [pepeInMillions, setPepeInMillions] = useState<number>(0);
   const [currentTimestamp, setCurrentTimestamp] = useState(
     Math.floor(Date.now() / 1000)
   );
@@ -78,7 +79,16 @@ export default function Home() {
       );
       setTransfers(transfers.reverse());
     };
+
     getTransfers();
+
+    const getPepeInMillions = async () => {
+      const pepeResponse = await fetch("/api/pepe");
+      const pepeInMillions = (await pepeResponse.json()).data;
+      setPepeInMillions(pepeInMillions);
+    };
+
+    getPepeInMillions();
 
     const onNewTransfer = async (
       from: string,
@@ -167,6 +177,10 @@ export default function Home() {
       <main className="text-zinc-50 flex flex-col items-center">
         <img src="/images/pepe.webp" height={200} width={200} />
         <h1 className="text-4xl font-bold my-4">$PEPE Transfers</h1>
+        <h2 className="text-xl mb-4">
+          Market Cap{" "}
+          <span className="text-2xl font-bold">{pepeInMillions}</span> Million
+        </h2>
         {pepeTransfers.length > 0 && (
           <div className="max-w-full relative overflow-x-auto border rounded-2xl">
             <table className="max-w-full text-sm text-left text-zinc-100">
@@ -201,22 +215,22 @@ export default function Home() {
                           rel="noreferrer"
                           href={`https://etherscan.io/tx/${transfer.transactionHash}`}
                         >
-                          {transfer.transactionHash.slice(0, 12)}...
+                          🔗 {transfer.transactionHash.slice(0, 12)}...
                         </a>
                       </td>
                       <td className="px-6 py-4 font-medium  whitespace-nowrap ">
                         {age}
                       </td>
                       <td className="px-6 py-4 font-medium  whitespace-nowrap ">
-                        {transfer.sender.slice(0, 8)}...
+                        ⬇️ {transfer.sender.slice(0, 8)}...
                         {transfer.sender.slice(36, 42)}
                       </td>
                       <td className="px-6 py-4 font-medium  whitespace-nowrap ">
-                        {transfer.recipient.slice(0, 8)}...
+                        ⬆️ {transfer.recipient.slice(0, 8)}...
                         {transfer.recipient.slice(36, 42)}
                       </td>
                       <td className="px-6 py-4 font-medium  whitespace-nowrap ">
-                        {transfer.amount}
+                        🐸 {transfer.amount}
                       </td>
                     </tr>
                   );
