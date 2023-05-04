@@ -2,7 +2,7 @@
 
 ## Description
 
-The $PEPE Token Transfer Tracker is a web application that displays the most recent 100 transfers of the $PEPE token on the Ethereum blockchain. The app provides users with the ability to filter transfers by sender and recipient addresses, as well as sort the transfer list by timestamp and transfer value. This application offers a user-friendly interface for monitoring $PEPE token transfers and obtaining essential information, such as transaction hashes, sender and recipient addresses, and transfer amounts.
+The $PEPE Token Transfer Tracker is a Next.js(React.js) web app that displays the most recent 100 transfers of the $PEPE token on the Ethereum blockchain. The app provides users with the ability to filter transfers by sender and recipient addresses, as well as sort the transfer list by timestamp and transfer value. This application offers a user-friendly interface for monitoring $PEPE token transfers and obtaining essential information, such as transaction hashes, sender and recipient addresses, and transfer amounts.
 
 ## Technologies and Implementation
 
@@ -22,4 +22,4 @@ The $PEPE Token Transfer Tracker is a web application that displays the most rec
 
 3. **Responsive design**: The app is built using a responsive design, ensuring that it looks good and functions well on different devices and screen sizes. This design approach makes the app more accessible to a broader range of users.
 
-4. **Performance optimizations**: The app uses techniques such as memoization and throttling to ensure smooth and efficient rendering, minimizing the impact of frequent state updates on application performance.
+4. **Scalability and maintainability**: By using TypeScript and Tailwind CSS, the app benefits from strong typing and a utility-first CSS framework, resulting in better code organization and maintainability. These technologies also enable easier debugging and scalability, allowing the app to grow and adapt to future requirements with minimal friction.
