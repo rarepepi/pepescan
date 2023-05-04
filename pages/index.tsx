@@ -55,7 +55,7 @@ export default function Home() {
         blockNumber: eventLog.blockNumber,
         timestamp: block?.timestamp as number,
         ageInSeconds: currentTimestamp - (block?.timestamp as number),
-      };
+      } as Transfer;
     });
     const resolvedLogs = await Promise.all(parsedLogs);
     return resolvedLogs;
@@ -103,7 +103,7 @@ export default function Home() {
       blockNumber: event.blockNumber,
       timestamp: block?.timestamp as number,
       ageInSeconds: currentTimestamp - (block?.timestamp as number),
-    };
+    } as Transfer;
     setTransfers((prevTransfers) => [newLog, ...prevTransfers]);
   };
 
