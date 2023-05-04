@@ -27,7 +27,7 @@ type Transfer = {
 export default function Home() {
   const [pepeTransfers, setTransfers] = useState<Transfer[]>([]);
   const [sortedAsc, setSortedAsc] = useState<boolean>(false);
-  const [filter, setFilter] = useState({ sender: "", recipient: "" });
+  const [filterInput, setFilter] = useState({ sender: "", recipient: "" });
   const [pepeInMillions, setPepeInMillions] = useState<number>(0);
   const [currentTimestamp, setCurrentTimestamp] = useState(
     Math.floor(Date.now() / 1000)
@@ -35,8 +35,8 @@ export default function Home() {
 
   async function getLast100Transfers(sender: string, recipient: string) {
     const filter = pepeContract.filters.Transfer(
-      sender || null,
-      recipient || null
+      filterInput.sender || null,
+      filterInput.recipient || null
     );
     const eventLogs = await pepeContract.queryFilter(filter, -100);
 
@@ -70,48 +70,46 @@ export default function Home() {
     };
   }, []);
 
+  const getTransfers = async () => {
+    console.log("getting transfers...");
+    const transfers = await getLast100Transfers(
+      filterInput.sender,
+      filterInput.recipient
+    );
+    setTransfers(transfers.reverse());
+  };
+
+  const getPepeInMillions = async () => {
+    const pepeResponse = await fetch("/api/pepe");
+    const pepeInMillions = (await pepeResponse.json()).data;
+    setPepeInMillions(pepeInMillions);
+  };
+
+  const onNewTransfer = async (
+    from: string,
+    to: string,
+    value: number,
+    event: any
+  ) => {
+    const block = await provider.getBlock(event.blockNumber);
+    console.log({ event });
+    if (!event.transactionHash) return;
+    console.log("new transfer!");
+    const newLog = {
+      amount: (Number(value) / 10 ** 18).toLocaleString(),
+      sender: from,
+      recipient: to,
+      transactionHash: event.transactionHash,
+      blockNumber: event.blockNumber,
+      timestamp: block?.timestamp as number,
+      ageInSeconds: currentTimestamp - (block?.timestamp as number),
+    };
+    setTransfers((prevTransfers) => [newLog, ...prevTransfers]);
+  };
+
   useEffect(() => {
-    const getTransfers = async () => {
-      console.log("getting transfers...");
-      const transfers = await getLast100Transfers(
-        filter.sender,
-        filter.recipient
-      );
-      setTransfers(transfers.reverse());
-    };
-
     getTransfers();
-
-    const getPepeInMillions = async () => {
-      const pepeResponse = await fetch("/api/pepe");
-      const pepeInMillions = (await pepeResponse.json()).data;
-      setPepeInMillions(pepeInMillions);
-    };
-
     getPepeInMillions();
-
-    const onNewTransfer = async (
-      from: string,
-      to: string,
-      value: number,
-      event: any
-    ) => {
-      const block = await provider.getBlock(event.blockNumber);
-
-      if (!event.transactionHash) return;
-      const newLog = {
-        amount: (Number(value) / 10 ** 18).toLocaleString(),
-        sender: from,
-        recipient: to,
-        transactionHash: event.transactionHash,
-        blockNumber: event.blockNumber,
-        timestamp: block?.timestamp as number,
-        ageInSeconds: currentTimestamp - (block?.timestamp as number),
-      };
-      setTransfers((prevTransfers) => [newLog, ...prevTransfers]);
-    };
-
-    // Attach the event listener
     pepeContract.on("Transfer", onNewTransfer);
 
     // Clean up the event listener on component unmount
@@ -181,6 +179,7 @@ export default function Home() {
           Market Cap{" "}
           <span className="text-2xl font-bold">{pepeInMillions}</span> Million
         </h2>
+
         {pepeTransfers.length > 0 && (
           <div className="max-w-full relative overflow-x-auto border rounded-2xl">
             <table className="max-w-full text-sm text-left text-zinc-100">
