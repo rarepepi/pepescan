@@ -159,6 +159,36 @@ export default function Home() {
     setTransfers(sortedLogs);
   };
 
+  const sortTransactions = () => {
+    console.log("sorting by sender/reciever...");
+    const ethAddressRegex = /^0x[a-fA-F0-9]{40}$/;
+
+    // If sender or recipient is not a valid eth address, return
+    if (
+      filterInput.sender !== "" &&
+      !ethAddressRegex.test(filterInput.sender)
+    ) {
+      console.log("invalid sender eth address");
+      return;
+    }
+    if (
+      filterInput.recipient !== "" &&
+      !ethAddressRegex.test(filterInput.recipient)
+    ) {
+      console.log("invalid recipient eth address");
+      return;
+    }
+
+    console.log("filtering transfers...");
+    const filteredLogs = pepeTransfers.filter((transfer) => {
+      return (
+        transfer.sender.includes(filterInput.sender) ||
+        transfer.recipient.includes(filterInput.recipient)
+      );
+    });
+    setTransfers(filteredLogs);
+  };
+
   function formatAge(seconds: number) {
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
@@ -190,6 +220,36 @@ export default function Home() {
           Market Cap{" "}
           <span className="text-2xl font-bold">{pepeInMillions}</span> Million
         </h2>
+        <div className="flex justify-center space-x-2 mb-4">
+          <input
+            type="text"
+            className="bg-transparent text-white focus:outline-none text-center border rounded-2xl"
+            placeholder="Sender"
+            name="sender"
+            value={filterInput.sender}
+            onChange={(e) => {
+              setFilter({
+                sender: e.target.value,
+                recipient: filterInput.recipient,
+              });
+              sortTransactions();
+            }}
+          />
+          <input
+            type="text"
+            className="bg-transparent text-white focus:outline-none text-center border rounded-2xl"
+            placeholder="Recipient"
+            name="recipient"
+            value={filterInput.recipient}
+            onChange={(e) => {
+              setFilter({
+                recipient: e.target.value,
+                sender: filterInput.sender,
+              });
+              sortTransactions();
+            }}
+          />
+        </div>
 
         {pepeTransfers.length > 0 && (
           <div className="max-w-full relative overflow-x-auto border rounded-2xl">
